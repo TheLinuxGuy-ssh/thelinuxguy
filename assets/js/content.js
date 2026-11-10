@@ -68,11 +68,12 @@ export const SITE_CONTENT = {
     ogImage: '/assets/media/og-image.png',
 
     /**
-     * Hidden until you say so: the topic pages' image slots stay in the
-     * data untouched, but no browser draws them while this is false, and
-     * topic social cards fall back to the generated site card above
-     * (instead of leaking a placeholder as the shared preview). Flip to
-     * true and run "npm run build" when your real files are in place.
+     * Personal pages are in "coming soon" mode until you say so: while
+     * this is false the topic pages draw no images AND the Personal cards
+     * hide their View buttons (without images those pages would only
+     * repeat the card's note anyway). Topic social cards fall back to
+     * the generated site card above instead of leaking a placeholder.
+     * Flip to true and run "npm run build" when your real files are in.
      */
     showTopicImages: false,
 

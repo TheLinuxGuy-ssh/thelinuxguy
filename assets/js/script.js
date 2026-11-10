@@ -72,12 +72,23 @@ function renderProject(project) {
 /**
  * Renders one row of the Personal tab. The "View" link points at the detail
  * page whose slug is the lowercased, dash-separated item title - it must
- * exist as an entry in site.topics of content.js.
+ * exist as an entry in site.topics of content.js. While
+ * site.meta.showTopicImages is false the View row is omitted too: without
+ * their image slots those pages only repeat the card's own note.
  */
 function renderPersonalItem(item, index) {
   const num = String(index + 1).padStart(2, '0');
   const note = item.note ? `<p>${escapeHtml(item.note)}</p>` : '';
   const slug = escapeHtml(slugifyTitle(item.title));
+
+  // Same flag as the topic renderer: hidden images == hidden View buttons,
+  // because the standalone pages have nothing new to show yet. The exact
+  // inner whitespace below is part of the page output, preserved verbatim.
+  const linkRow = S.meta.showTopicImages !== false
+    ? `<ul class="card-links">
+                <li><a href="./topic/index.html?p=${slug}">${S.labels.cardLinks.view} <span aria-hidden="true">&rarr;</span></a></li>
+            </ul>`
+    : '';
 
   return `
         <li>
@@ -85,9 +96,7 @@ function renderPersonalItem(item, index) {
           <div>
             <h2>${escapeHtml(item.title)}</h2>
             ${note}
-            <ul class="card-links">
-                <li><a href="./topic/index.html?p=${slug}">${S.labels.cardLinks.view} <span aria-hidden="true">&rarr;</span></a></li>
-            </ul>
+            ${linkRow}
           </div>
         </li>`;
 }

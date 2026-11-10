@@ -64,9 +64,11 @@ Details pages are looked up by slug, so an item needs **both** entries, in sync:
 
 The pages below carry only image slots. **Hide / reveal them:**
 `meta.showTopicImages` in content.js — `false` keeps every slot in the data
-but draws nothing (and topic social cards fall back to the generated site
-card); flip to `true` and run `npm run build` when your real files are in
-place.
+but draws nothing, **and hides the Personal cards' View buttons too** (with
+no images the pages would only repeat the card's note). Topic social cards
+fall back to the generated site card as well. Flip to `true` and run
+`npm run build` when your real files are in place — View comes back with
+the images.
 
 A personal item without a matching topic shows the "Page not found." screen.
 The strings of that screen live in `pages.topic.notFound` / `pages.monologue.notFound`.
