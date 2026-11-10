@@ -168,7 +168,6 @@ export const SITE_CONTENT = {
       links: [
         { label: 'GitHub', handle: 'TheLinuxGuy-ssh', url: 'https://github.com/TheLinuxGuy-ssh' },
         { label: 'Instagram', handle: '@the.linuxguy', url: 'https://instagram.com/the.linuxguy' },
-        { label: 'Website', handle: 'linuxguy.tech', url: 'https://linuxguy.tech' },
       ],
     },
   },
