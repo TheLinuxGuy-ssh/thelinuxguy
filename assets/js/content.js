@@ -358,7 +358,7 @@ export const SITE_CONTENT = {
     name: "COSMA2k24",
     type: "Website",
     desc: "An Inter-School Tech Event Website.",
-    url: "https://thelinuxguy-ssh.github.io/cosma2k24/"
+    url: "https://thelinuxguy-ssh.github.io/COSMA2k24/"
   },
   {
     name: "Mahaveer International School",
@@ -376,7 +376,7 @@ export const SITE_CONTENT = {
     name: "COSMA 2023",
     type: "Website",
     desc: "A website for an inter-school Tech Event.",
-    url: "https://thelinuxguy-ssh.github.io/cosma/"
+    url: "https://thelinuxguy-ssh.github.io/COSMA/"
   }
 ],
 
