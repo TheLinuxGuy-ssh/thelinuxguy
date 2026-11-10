@@ -1,0 +1,586 @@
+/* ==========================================================================
+   ROHAN SHARMA (THELINUXGUY) — website stylesheet
+   --------------------------------------------------------------------------
+   This is the single stylesheet for all pages (index, monologue, topic).
+
+   Design conventions:
+   - One ink #161616 on paper #ffffff. Every border is 2px solid of the ink.
+   - Sizes are em-based so typography drives spacing; only the mobile media
+     query at the bottom changes the grid flows.
+   - All text content rendered by JavaScript comes from assets/js/content.js
+     (the single source of truth); this file only styles the structure.
+
+   Layout map:
+     body > [skip-link] + header (.me / .badge) + .content-container > .nav +
+     .content-view  (single-page app target)   -- index.html
+     body > header + main.post (back-link/post-meta/post-title/post-body)
+     -- monologue + topic pages
+   ========================================================================== */
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Helvetica, Arial, sans-serif;
+    margin: 2em;
+    color: #161616;
+    background-color: #ffffff;
+    line-height: 1.5;
+}
+
+header {
+    margin-bottom: 1.5em;
+}
+
+/* -------------------------------------------------------------------------- */
+
+/* Header identity: the big name + the black badge. Static in every page's
+   HTML (renders without JS) and kept in sync with content.js by site.js. */
+
+.me {
+    font-weight: bold;
+    font-size: 3.2em;
+    line-height: 1.1;
+}
+
+.badge {
+    font-size: 1em;
+    background-color: #161616;
+    color: #ffffff;
+    padding: 0.2em 0.25em;
+    text-transform: uppercase;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+/* -------------------------------------------------------------------------- */
+
+/* Shell of the main page: left column nav, right column content.
+   Stacks vertically on mobile (see the media query at the bottom). */
+
+.content-container {
+    display: flex;
+    gap: 10vw;
+    align-items: flex-start;
+}
+
+/* Navigation */
+
+.nav {
+    width: max-content;
+    flex-shrink: 0;
+}
+
+.nav ul {
+    margin: 0;
+    padding: 0;
+}
+
+.nav li {
+    list-style-type: none;
+    width: 100%;
+}
+
+.nav li a {
+    display: block;
+    text-decoration: none;
+    color: #161616;
+    font-weight: bold;
+    font-size: 1.2em;
+    padding: 0.05em 0.2em;
+    width: 100%;
+}
+
+.nav li a:hover,
+.nav li a.active {
+    background-color: #161616;
+    color: #ffffff;
+}
+
+.nav li a:focus-visible {
+    background-color: #161616;
+    color: #ffffff;
+    outline: 2px solid #161616;
+    outline-offset: 2px;
+}
+
+a:focus-visible {
+    outline: 2px solid #161616;
+    outline-offset: 2px;
+}
+
+/* Skip link */
+
+.skip-link {
+    position: absolute;
+    left: -9999px;
+    top: 0;
+    background-color: #161616;
+    color: #ffffff;
+    padding: 0.4em 0.6em;
+    font-weight: bold;
+    text-decoration: none;
+    z-index: 10;
+}
+
+.skip-link:focus {
+    left: 0.5em;
+    top: 0.5em;
+}
+
+/* Content area */
+
+.content-view {
+    flex: 1;
+    max-width: 46em;
+    min-width: 0;
+    margin-top: 1em;
+}
+
+.content-view:focus {
+    outline: none;
+}
+
+.portfolio-section h1 {
+    margin: 0.6em 0 0.5em;
+    font-size: 2.4em;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+}
+
+.portfolio-section h2 {
+    margin: 0;
+    font-size: 1.25em;
+    line-height: 1.2;
+}
+
+.portfolio-section p {
+    margin: 0 0 1em;
+}
+
+.lead {
+    font-size: 1.15em;
+    max-width: 38em;
+    margin: 0em 0 2.4em 0 !important;
+}
+
+.section-label {
+    display: inline-block;
+    background-color: #161616;
+    color: #ffffff;
+    padding: 0.2em 0.5em;
+    font-size: 0.8em;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.badge-inline {
+    display: inline-block;
+    border: 2px solid #161616;
+    padding: 0.1em 0.5em;
+    font-size: 0.8em;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.8em;
+}
+
+/* About */
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    border: 2px solid #161616;
+    margin-bottom: 2em;
+}
+
+.stat {
+    padding: 1em;
+    border-right: 2px solid #161616;
+}
+
+.stat:last-child {
+    border-right: none;
+}
+
+.stat-value {
+    display: block;
+    font-size: 2.4em;
+    font-weight: bold;
+    line-height: 1;
+    letter-spacing: -0.03em;
+}
+
+.stat-label {
+    display: block;
+    margin-top: 0.5em;
+    font-size: 0.8em;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.facts {
+    margin: 0;
+    border-top: 2px solid #161616;
+}
+
+.fact {
+    display: grid;
+    grid-template-columns: 8em 1fr;
+    gap: 1em;
+    padding: 0.7em 0;
+    border-bottom: 2px solid #161616;
+}
+
+.fact dt {
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 0.8em;
+    letter-spacing: 0.08em;
+    padding-top: 0.2em;
+}
+
+.fact dd {
+    margin: 0;
+}
+
+/* Monologues */
+
+.empty {
+    border: 2px dashed #161616;
+    padding: 1.5em;
+}
+
+.empty p {
+    margin: 0;
+}
+
+/* Projects */
+
+.card-list {
+    display: grid;
+    gap: 2em;
+}
+
+.card {
+    padding: 0;
+}
+
+.card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1em;
+    margin: 0 0 0.4em;
+}
+
+.card-status {
+    font-size: 0.75em;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+}
+
+.card p {
+    margin-bottom: 0.8em;
+    max-width: 38em;
+}
+
+.card-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4em 1.8em;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.card-links li {
+    border: 0 !important;
+}
+
+.card-links a {
+    color: #161616;
+    font-weight: bold;
+    text-decoration: none;
+    border-bottom: 2px solid #161616;
+    padding-bottom: 0.05em;
+    display: flex;
+}
+
+
+/* Personal */
+
+.index-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-top: 2px solid #161616;
+}
+
+.index-list li {
+    display: grid;
+    grid-template-columns: 3.5em 1fr;
+    gap: 1em;
+    padding: 1em 0;
+    border-bottom: 2px solid #161616;
+}
+
+.index-list p {
+    margin: 0.3em 0 0;
+}
+
+.index-num {
+    font-size: 1.6em;
+    font-weight: bold;
+    line-height: 1;
+    letter-spacing: -0.03em;
+}
+
+/* Contact */
+
+.link-rows {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-top: 2px solid #161616;
+}
+
+.link-rows li {
+    border-bottom: 2px solid #161616;
+}
+
+.link-rows a {
+    display: grid;
+    grid-template-columns: 8em 1fr auto;
+    gap: 1em;
+    align-items: baseline;
+    padding: 0.9em 0.5em;
+    color: #161616;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 1.2em;
+}
+
+.link-rows a:hover {
+    background-color: #161616;
+    color: #ffffff;
+}
+
+.link-handle {
+    font-weight: normal;
+    font-size: 0.85em;
+}
+
+.link-arrow {
+    font-size: 1.1em;
+}
+
+/* Monologue page */
+
+.home-link {
+    color: inherit;
+    text-decoration: none;
+}
+
+.post {
+    max-width: 40em;
+    margin-top: 1em;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.post:focus {
+    outline: none;
+}
+
+/* Detail-page fill targets: these get their values from content.js at
+   runtime (see monologue.js / topic.js). */
+
+.back-link {
+    display: inline-block;
+    margin-bottom: 1.5em;
+    color: #161616;
+    font-weight: bold;
+    text-decoration: none;
+    border-bottom: 2px solid #161616;
+}
+
+.back-link:hover {
+    background-color: #161616;
+    color: #ffffff;
+}
+
+.post-meta {
+    margin: 0;
+    font-size: 0.75em;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.post-title {
+    margin: 0.2em 0 0.8em;
+    font-size: 2.4em;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+}
+
+.post-body p {
+    margin: 0 0 1.2em;
+}
+
+.post-body a {
+    color: #161616;
+    font-weight: bold;
+}
+
+/* Emphasis classes used inside your post text */
+
+.important {
+    font-weight: bold;
+}
+
+.highlight {
+    background-color: #161616;
+    color: #ffffff;
+    padding: 0 0.2em;
+}
+
+.beware {
+    font-weight: bold;
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.15em;
+}
+
+.post-body a.highlight {
+    text-decoration: none;
+}
+
+.post-body p.highlight {
+    display: inline-block;
+    padding: 0.2em 0.5em;
+}
+
+/* Topic pages */
+
+.index-list .card-links {
+    margin-top: 0.5em;
+}
+
+.post-body h2 {
+    margin: 1.6em 0 0.5em;
+    font-size: 1.25em;
+    line-height: 1.2;
+}
+
+.post-body .card-links {
+    margin: 0 0 1.4em;
+}
+
+.gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(14em, 1fr));
+    gap: 1em;
+    margin: 0 0 1.6em;
+}
+
+.figure {
+    margin: 0;
+}
+
+.figure a {
+    display: block;
+}
+
+.figure img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border: 2px solid #161616;
+}
+
+.figure figcaption {
+    margin-top: 0.4em;
+    font-size: 0.75em;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+/* Mobile */
+
+@media (max-width: 640px) {
+    body {
+        margin: 1.25em;
+    }
+
+    .me {
+        font-size: 2.2em;
+    }
+
+    .content-container {
+        flex-direction: column;
+        gap: 1.5em;
+    }
+
+    .nav ul {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.25em 0.75em;
+    }
+
+    .nav li {
+        width: auto;
+    }
+
+    .portfolio-section h1 {
+        font-size: 1.7em;
+    }
+
+    .stats {
+        grid-template-columns: 1fr;
+    }
+
+    .stat {
+        border-right: none;
+        border-bottom: 2px solid #161616;
+    }
+
+    .stat:last-child {
+        border-bottom: none;
+    }
+
+    .fact {
+        grid-template-columns: 1fr;
+        gap: 0.2em;
+    }
+
+    .link-rows a {
+        grid-template-columns: 1fr auto;
+    }
+
+    .link-handle {
+        grid-column: 1;
+        grid-row: 2;
+    }
+
+    .link-arrow {
+        grid-column: 2;
+        grid-row: 1 / span 2;
+        align-self: center;
+    }
+
+    .post-title {
+        font-size: 1.7em;
+    }
+
+    .gallery {
+        grid-template-columns: 1fr;
+    }
+}

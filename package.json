@@ -1,0 +1,11 @@
+{
+  "name": "tlg-portfolio",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "dev": "vite"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2"
+  }
+}
