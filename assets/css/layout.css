@@ -761,3 +761,49 @@ a:focus-visible {
     outline: 2px solid #161616;
     outline-offset: 2px;
 }
+
+/* The work-with-me postscript reads like a .card-status micro label. */
+
+.ping-work {
+    margin: 0;
+    font-size: 0.75em;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    opacity: 0.7;
+}
+
+/* -----------------------------------------------------------------------
+   GHOST REPORT - the confession line + button on not-found pages
+   (site.pages.*.notFound). The button borrows the quick-ping text-link
+   voice; both only render while the ping widget is enabled.
+   -------------------------------------------------------------------- */
+
+.ghost-line {
+    font-size: 0.75em;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    opacity: 0.7;
+    margin: 0 0 0.6em;
+}
+
+.ghost-report {
+    font-family: inherit;
+    font-size: 1em;
+    font-weight: bold;
+    color: #161616;
+    background: none;
+    border: 0;
+    border-bottom: 2px solid #161616;
+    padding: 0 0 0.05em;
+    cursor: pointer;
+}
+
+.ghost-report:hover,
+.ghost-report:focus-visible {
+    background-color: #161616;
+    color: #ffffff;
+    outline: 2px solid #161616;
+    outline-offset: 2px;
+}

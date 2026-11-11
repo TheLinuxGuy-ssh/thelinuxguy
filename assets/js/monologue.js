@@ -11,6 +11,7 @@
  */
 
 import { SITE_CONTENT } from './content.js';
+import { openPingCard } from './site.js';
 
 const S = SITE_CONTENT;
 
@@ -26,10 +27,24 @@ export function initMonologuePage() {
 
   if (!post) {
     document.title = page.notFound.title;
+    // The ghost report rides on the ping widget: no widget, no report.
+    const ghost = S.ping && S.ping.enabled !== false && S.ping.ghost
+      ? page.notFound
+      : null;
     view.innerHTML = `
       <a class="back-link" href="${page.errorHref}">${page.backLabel}</a>
       <h1 class="post-title">${page.notFound.heading}</h1>
-      <p>${page.notFound.body}</p>`;
+      <p>${page.notFound.body}</p>${ghost ? `
+      <p class="ghost-line">${ghost.ghostLine}</p>
+      <button type="button" class="ghost-report">${ghost.ghostButton}</button>` : ''}`;
+    if (ghost) {
+      view.querySelector('.ghost-report').addEventListener('click', () => {
+        openPingCard({
+          prefill: `${S.ping.ghost.note}${window.location.href}`,
+          mode: 'ghost',
+        });
+      });
+    }
     return;
   }
 

@@ -13,7 +13,15 @@
  */
 
 import { SITE_CONTENT } from './content.js';
-import { escapeHtml, setMeta, setCanonical, shorten, absoluteUrl, slugifyTitle } from './site.js';
+import {
+  escapeHtml,
+  setMeta,
+  setCanonical,
+  shorten,
+  absoluteUrl,
+  slugifyTitle,
+  openPingCard,
+} from './site.js';
 
 const S = SITE_CONTENT;
 const OG_IMAGE = `${S.meta.url}${S.meta.ogImage}`;
@@ -104,10 +112,24 @@ export function initTopicPage() {
   if (!topic) {
     document.title = page.notFound.title;
     setMeta('name', 'robots', 'noindex');
+    // The ghost report rides on the ping widget: no widget, no report.
+    const ghost = S.ping && S.ping.enabled !== false && S.ping.ghost
+      ? page.notFound
+      : null;
     view.innerHTML = `
       <a class="back-link" href="${page.backHref}">${page.backLabel}</a>
       <h1 class="post-title">${page.notFound.heading}</h1>
-      <p>${page.notFound.body}</p>`;
+      <p>${page.notFound.body}</p>${ghost ? `
+      <p class="ghost-line">${ghost.ghostLine}</p>
+      <button type="button" class="ghost-report">${ghost.ghostButton}</button>` : ''}`;
+    if (ghost) {
+      view.querySelector('.ghost-report').addEventListener('click', () => {
+        openPingCard({
+          prefill: `${S.ping.ghost.note}${window.location.href}`,
+          mode: 'ghost',
+        });
+      });
+    }
     return;
   }
 

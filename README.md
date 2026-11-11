@@ -119,6 +119,13 @@ in site.js. Everything about it lives in one `ping` block in content.js:
 - **Timing:** one visitor can ping every `ping.cooldownSeconds` (the cooldown
   survives a reload); failed sends are not counted.
 - **Self-hosting:** point `ping.server` at your own ntfy instance and rebuild.
+- **The work-with-me line:** `ping.labels.workWithMe` is the small postscript
+  at the bottom of the card — reword it freely, it's just copy.
+- **Ghost reports:** both not-found screens show a line and a
+  "tell me how you got here →" button (copy in `pages.*.notFound`); clicking
+  it opens the card with the dead URL pre-filled and sends the ping as a
+  `ghost sighting` — your phone gets a structured spook report. It renders
+  only while the ping widget is enabled.
 
 ## What is intentionally *not* in content.js
 

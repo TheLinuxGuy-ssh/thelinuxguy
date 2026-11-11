@@ -576,6 +576,9 @@ export const SITE_CONTENT = {
         title: 'Not found - TheLinuxGuy',
         heading: 'Monologue not found.',
         body: "That link doesn't match any monologue.",
+        /** The ghost report: an invite to confess how they got here. */
+        ghostLine: 'this page never existed. spooky.',
+        ghostButton: 'tell me how you got here →',
       },
     },
 
@@ -592,6 +595,9 @@ export const SITE_CONTENT = {
         title: 'Not found | TheLinuxGuy',
         heading: 'Page not found.',
         body: "That link doesn't match any topic.",
+        /** The ghost report: an invite to confess how they got here. */
+        ghostLine: 'this page never existed. spooky.',
+        ghostButton: 'tell me how you got here →',
       },
     },
   },
@@ -628,6 +634,14 @@ export const SITE_CONTENT = {
     /** Emoji shortcodes ntfy shows next to the notification. */
     tags: 'wave,eyes',
 
+    /** How a report sent from a not-found page differs from a normal ping. */
+    ghost: {
+      /** Prefilled note; the dead URL is appended at runtime. */
+      note: 'I found a ghost page: ',
+      title: 'ghost sighting reported 👻',
+      tag: 'ghost',
+    },
+
     /** Title line of the push notification. */
     notifyTitle: 'disturbance received 👋',
 
@@ -648,6 +662,7 @@ export const SITE_CONTENT = {
       homeContext: 'the home page',
       monologueContext: 'monologue',
       topicContext: 'personal',
+      workWithMe: 'want to work with me? just disturb me at this point :)',
     },
   },
 };

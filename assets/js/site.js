@@ -119,6 +119,24 @@ const PING_COOLDOWN_KEY = 'ping-last-sent-at';
 const PING_FAIL_RESET_MS = 2500;
 
 /**
+ * Set by initPingButton while the widget is live; lets other renderers
+ * (ghost reports, the wall) open the card programmatically via openPingCard.
+ */
+let pingApi = null;
+
+/**
+ * Opens the disturb-me card from code. A no-op while the ping widget is
+ * disabled (there is nothing to open).
+ *
+ *   prefill -> text placed in the note box (send enables if non-empty)
+ *   mode    -> 'ghost' | 'wall' | null; switches the notification's
+ *              title/tags (and the context line for 'wall') per site.ping
+ */
+export function openPingCard({ prefill = '', mode: nextMode = null } = {}) {
+  if (pingApi) pingApi.open({ prefill, mode: nextMode });
+}
+
+/**
  * Builds and wires the disturb-me widget. A no-op while `ping.enabled` is
  * false or the topic is empty, so nothing renders and nothing pings.
  */
@@ -140,9 +158,14 @@ export function initPingButton() {
   const clickUrl = `${SITE_CONTENT.meta.url}${path}${window.location.search}`;
   const server = String(ping.server).replace(/\/+$/, '');
 
+  /* Optional mode of the next send: 'ghost' (a not-found report) or 'wall'
+   * (a wall signature). The pill itself always resets to a normal ping. */
+  let mode = null;
+
   /* The whole widget is one static subtree appended to the body. The card
    * reads top-down: heading, then the note box with send beside it on one
-   * line, then the "or" rule, then the one-click quick ping. */
+   * line, then the "or" rule, the one-click quick ping, and the small
+   * work-with-me postscript. */
   const root = document.createElement('div');
   root.className = 'ping-root';
   root.innerHTML = `
@@ -154,6 +177,7 @@ export function initPingButton() {
         </div>
         <div class="ping-or"><span>${escapeHtml(labels.or)}</span></div>
         <button type="button" class="ping-quick">${escapeHtml(labels.quickPing)}</button>
+        <p class="ping-work">${escapeHtml(labels.workWithMe)}</p>
       </div>
       <button type="button" class="ping-pill" aria-expanded="false">${escapeHtml(labels.button)}</button>`;
   document.body.appendChild(root);
@@ -180,8 +204,10 @@ export function initPingButton() {
     }
   };
 
-  /** Sends one notification: a note (or the quick-ping line) + the page. */
+  /** Sends one notification: a note (or the quick-ping line) + the page.
+   * Ghost mode swaps in the ghost report's title and tag. */
   const sendPing = (noteText) => {
+    const ghostMode = mode === 'ghost' && ping.ghost;
     const body = `${noteText || ping.quickBody}\n— anonymous, from ${context}`;
     pill.disabled = true;
     quick.disabled = true;
@@ -190,8 +216,8 @@ export function initPingButton() {
     fetch(`${server}/${ping.topic}`, {
       method: 'POST',
       headers: {
-        'X-Title': ping.notifyTitle,
-        'X-Tags': ping.tags,
+        'X-Title': ghostMode ? ping.ghost.title : ping.notifyTitle,
+        'X-Tags': ghostMode ? ping.ghost.tag : ping.tags,
         'X-Click': clickUrl,
       },
       body,
@@ -206,6 +232,7 @@ export function initPingButton() {
         pill.textContent = labels.sent;
         pop.setAttribute('hidden', '');
         pill.setAttribute('aria-expanded', 'false');
+        mode = null;
         schedule(unlock, ping.cooldownSeconds * 1000);
       })
       .catch(() => {
@@ -215,10 +242,10 @@ export function initPingButton() {
       });
   };
 
-  const openPop = () => {
+  const openPop = (focusNote) => {
     pop.removeAttribute('hidden');
     pill.setAttribute('aria-expanded', 'true');
-    quick.focus();
+    if (focusNote) note.focus(); else quick.focus();
   };
 
   const closePop = () => {
@@ -229,6 +256,7 @@ export function initPingButton() {
   };
 
   pill.addEventListener('click', () => {
+    mode = null; /* the pill itself is always a plain disturb */
     if (pop.hasAttribute('hidden')) openPop(); else closePop();
   });
   quick.addEventListener('click', () => sendPing(''));
@@ -258,6 +286,17 @@ export function initPingButton() {
     pill.textContent = labels.sent;
     schedule(unlock, remaining);
   }
+
+  pingApi = {
+    open({ prefill = '', mode: nextMode = null } = {}) {
+      mode = nextMode || null;
+      if (prefill) {
+        note.value = prefill;
+        send.disabled = note.value.trim().length === 0;
+      }
+      openPop(Boolean(prefill));
+    },
+  };
 
   return root;
 }
