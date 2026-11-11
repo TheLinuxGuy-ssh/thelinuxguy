@@ -742,7 +742,7 @@ a:focus-visible {
 /* The quick-ping row is a text link, same voice as .card-links a. */
 
 .ping-quick {
-    align-self: flex-start;
+    align-self: center;
     font-family: inherit;
     font-size: 1em;
     font-weight: bold;

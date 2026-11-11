@@ -637,10 +637,10 @@ export const SITE_CONTENT = {
     /** Every visible string of the widget, editable like everything else. */
     labels: {
       button: 'disturb me 👋',
-      heading: 'type and send here to disturb me!',
+      heading: 'pssst...this will ping all my devices.',
       or: 'or',
       quickPing: 'just ping me →',
-      placeholder: 'something random, a tip, a hello — anything goes…',
+      placeholder: 'type it out!',
       send: 'send it →',
       sending: 'pinging…',
       sent: 'pinged! 🎉',
