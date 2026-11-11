@@ -101,7 +101,22 @@ prefers `rsvg-convert` / `magick` / `inkscape`; on a plain macOS box it falls
 back to the native `qlmanage` + `sips` pair, so no extra installs are needed.
 Both index.html and the topic-page OG fallback point at that same file.
 
-### 6. The "disturb me" button (ntfy pings)
+### 6. The good-first-issues panel (Projects tab)
+Beside the project cards (right column on wide screens, below them on
+phones) sits a panel that mirrors reality: open issues labelled
+`good first issue` across your public GitHub repos (`meta.githubUser`),
+fresh from one unauthenticated search-API request, cached per visitor for
+`projects.issues.cacheMinutes` and capped at `projects.issues.max` rows.
+
+- **Feed it:** create issues on your repos and give them the
+  `good first issue` label — the panel picks them up on the next visit
+  (per visitor, after the cache expires). No setup beyond that.
+- **Empty or offline:** `projects.issues.fallback` is the line shown when
+  the API finds nothing or fails. Reword it freely — it's content.js.
+- **Tune it:** `kicker`, `blurb`, `max` and `cacheMinutes` all live in
+  `sections.projects.issues` in content.js.
+
+### 7. The "disturb me" button (ntfy pings)
 A site-wide pill, bottom-right of every page, rendered by `initPingButton()`
 in site.js. Everything about it lives in one `ping` block in content.js:
 

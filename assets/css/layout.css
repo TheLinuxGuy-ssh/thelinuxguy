@@ -807,3 +807,94 @@ a:focus-visible {
     outline: 2px solid #161616;
     outline-offset: 2px;
 }
+
+/* -----------------------------------------------------------------------
+   GOOD FIRST ISSUES PANEL - sits beside the project cards (Projects tab).
+   The content column widens only while the Projects tab is open, so the
+   cards keep their 46em and the panel fills the freed right space. The
+   list is fetched at runtime by fillIssuesPanel() in script.js; all copy
+   comes from content.js (sections.projects.issues).
+   -------------------------------------------------------------------- */
+
+.projects-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 46em) minmax(14em, 1fr);
+    gap: 2em;
+    align-items: start;
+}
+
+.content-view:has(.projects-layout) {
+    max-width: 66em;
+}
+
+.projects-layout .card-list {
+    min-width: 0;
+}
+
+.issues-panel {
+    position: sticky;
+    top: 1em;
+    border: 2px solid #161616;
+    padding: 0.8em;
+}
+
+.issues-blurb {
+    margin: 0.6em 0 0.4em;
+    max-width: none;
+}
+
+.issues-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.issues-list li {
+    padding: 0.5em 0;
+}
+
+.issues-list li + li {
+    border-top: 2px solid #161616;
+}
+
+.issues-list a {
+    color: #161616;
+    font-weight: bold;
+    text-decoration: none;
+    border-bottom: 2px solid #161616;
+    padding-bottom: 0.05em;
+    line-height: 1.4;
+}
+
+.issues-list a:hover,
+.issues-list a:focus-visible {
+    background-color: #161616;
+    color: #ffffff;
+    outline: 2px solid #161616;
+    outline-offset: 2px;
+}
+
+.issues-repo {
+    display: block;
+    margin-top: 0.3em;
+    font-size: 0.75em;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    opacity: 0.7;
+}
+
+.issues-fallback {
+    margin: 0.4em 0 0;
+    font-size: 0.9em;
+}
+
+@media (max-width: 640px) {
+    .projects-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .issues-panel {
+        position: static;
+    }
+}

@@ -148,6 +148,20 @@ export const SITE_CONTENT = {
     /** projects list lives in "site.projects" below. */
     projects: {
       heading: 'Things I have built.',
+
+      /**
+       * The good-first-issues panel beside the cards. It mirrors reality:
+       * open issues labelled "good first issue" on your public repos are
+       * pulled from GitHub's search API (one request, cached per visitor
+       * for cacheMinutes). Nothing found -> the fallback line shows.
+       */
+      issues: {
+        kicker: 'good first issues',
+        blurb: 'want to build together? grab one of these and start talking.',
+        fallback: 'no open doors right now — start one, label it good first issue, i will answer.',
+        cacheMinutes: 30,
+        max: 5,
+      },
     },
 
     /** personal list lives in "site.personal" below. */

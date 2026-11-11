@@ -169,6 +169,87 @@ const aboutStatsHtml = about.stats.map(renderStat).join('\n');
 const aboutFactsHtml = about.facts.map(renderFact).join('\n');
 const contactRowsHtml = contact.links.map(renderContactRow).join('\n');
 
+// ---------------------------------------------------------------------------
+// Good first issues panel (Projects tab)
+// ---------------------------------------------------------------------------
+
+/** localStorage key of the issues cache: { at, items }. */
+const ISSUES_CACHE_KEY = 'issues-cache-v1';
+
+/**
+ * Draws the fetched issues into the panel (or the fallback line when there
+ * are none / the API failed). All copy comes from content.js.
+ */
+function drawIssues(panel, items) {
+  const list = panel.querySelector('.issues-list');
+  const fallback = panel.querySelector('.issues-fallback');
+  const issues = projects.issues;
+  const shown = items.slice(0, Number(issues.max) || 5);
+
+  if (!shown.length) {
+    list.innerHTML = '';
+    fallback.textContent = issues.fallback;
+    fallback.removeAttribute('hidden');
+    return;
+  }
+
+  fallback.setAttribute('hidden', '');
+  list.innerHTML = shown.map((it) => `
+        <li>
+          <a href="${escapeHtml(it.href)}" target="_blank" rel="noopener noreferrer">${escapeHtml(it.title)} <span aria-hidden="true">&rarr;</span></a>
+          <span class="issues-repo">${escapeHtml(it.repo)}</span>
+        </li>`).join('');
+}
+
+/**
+ * Fills the good-first-issues panel: serves the visitor-local cache while
+ * it is fresh, otherwise makes ONE unauthenticated search-API request for
+ * open issues labelled "good first issue" across the GitHub user's public
+ * repos. Any failure (offline, rate limit) degrades to the fallback line.
+ * Fire-and-forget from render('projects').
+ */
+async function fillIssuesPanel(scope) {
+  const panel = scope.querySelector('.issues-panel');
+  if (!panel) return;
+  const issues = projects.issues;
+  const max = Number(issues.max) || 5;
+  const cacheMs = (Number(issues.cacheMinutes) || 30) * 60000;
+
+  let cached = null;
+  try {
+    cached = JSON.parse(localStorage.getItem(ISSUES_CACHE_KEY) || 'null');
+  } catch (err) {
+    void err; /* private mode: just fetch fresh every time */
+  }
+  if (cached && Array.isArray(cached.items) && Date.now() - cached.at < cacheMs) {
+    drawIssues(panel, cached.items);
+    return;
+  }
+
+  try {
+    const query = `label:"good first issue" state:open user:${S.meta.githubUser}`;
+    const res = await fetch(
+      `https://api.github.com/search/issues?q=${encodeURIComponent(query)}&per_page=${max}&sort=created&order=desc`
+    );
+    if (!res.ok) throw new Error(`github said ${res.status}`);
+    const data = await res.json();
+    const items = ((data && data.items) || []).map((it) => ({
+      title: it.title,
+      href: it.html_url,
+      repo: String(it.repository_url || '').split('/repos/')[1] || '',
+    }));
+    try {
+      localStorage.setItem(ISSUES_CACHE_KEY, JSON.stringify({ at: Date.now(), items }));
+    } catch (err) {
+      void err;
+    }
+    drawIssues(panel, items);
+  } catch (err) {
+    void err;
+    drawIssues(panel, []);
+  }
+}
+
 export const PORTFOLIO_SECTIONS = {
   about: `
     <section class="portfolio-section">
@@ -203,7 +284,16 @@ ${aboutFactsHtml}
     <section class="portfolio-section">
       <h1>${projects.heading}</h1>
 
-      <div class="card-list">${S.projects.map(renderProject).join('')}
+      <div class="projects-layout">
+        <div class="card-list">${S.projects.map(renderProject).join('')}
+        </div>
+
+        <aside class="issues-panel">
+          <p class="section-label">${projects.issues.kicker}</p>
+          <p class="issues-blurb">${projects.issues.blurb}</p>
+          <ul class="issues-list"></ul>
+          <p class="issues-fallback" hidden></p>
+        </aside>
       </div>
     </section>
   `,
@@ -255,6 +345,7 @@ export function initMainPage() {
   function render(key) {
     const section = PORTFOLIO_SECTIONS[key] ? key : DEFAULT_SECTION;
     display.innerHTML = PORTFOLIO_SECTIONS[section];
+    if (section === 'projects') fillIssuesPanel(display);
 
     navLinks.forEach((link) => {
       const isActive = link.dataset.target === section;
