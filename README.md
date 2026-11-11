@@ -81,7 +81,9 @@ the path if it changed. Nothing else to touch.
 ### 4. About stats, facts, contact links, nav order
 `sections.about.stats`, `sections.about.facts`, `sections.contact.links` and
 `navigation` — each is a small self-documenting array; edit in place.
-Keyboard order (1–5, j/k, Home/End) follows the `navigation` order.
+Keyboard order (number keys, j/k, Home/End) follows the `navigation` order.
+A nav entry needs a matching `data-target` link in index.html (the shell's
+nav is static; the labels come from `navigation`).
 
 ### 5. Rebuild (required after every content edit)
 ```bash
@@ -116,20 +118,23 @@ fresh from one unauthenticated search-API request, cached per visitor for
 - **Tune it:** `kicker`, `blurb`, `max` and `cacheMinutes` all live in
   `sections.projects.issues` in content.js.
 
-### 7. The wall (curated guestbook, Contact tab)
-At the bottom of the Contact tab sits the wall: a hand-curated list of the
-marks people have left. Visitors sign it with the "sign the wall →" button,
-which opens the disturb card in wall mode — their ping arrives on your phone
-titled `new wall signature` (tag `sparkles`, context "the wall").
+### 7. The wall (its own tab — the curated guestbook)
+"The Wall" is a full navigation tab (last in `site.navigation`). It is a
+hand-curated list of the marks people have left: visitors sign it with the
+"sign the wall →" button, which opens the disturb card in wall mode — their
+ping arrives on your phone titled `new wall signature` (tag `sparkles`,
+context "the wall"). A micro hint under the button tells visitors exactly
+that: *"your sign pings me directly — the ones i like end up here."*
 
-- **Curate it:** when a ping makes you smile, paste it into
-  `sections.contact.wall.entries` as `{ alias: 'who', line: 'what they said' }`
-  and rebuild. Nothing publishes itself, so the wall can never fill with spam —
-  only rows you typed in exist.
+- **How a sign is added (the honest answer):** a signature only becomes a
+  wall row when YOU paste it. When a ping makes you smile, add it to
+  `sections.wall.entries` as `{ alias: 'who', line: 'what they said' }` and
+  rebuild. Nothing publishes itself, so the wall can never fill with spam.
 - **Fresh start:** with no entries the wall shows `wall.empty`
   ("no marks yet — be the first."). Fill it whenever you like.
-- **Tune it:** `heading`, `line`, `sign`, `hint`, `pingTitle`, `pingTag` and
-  `context` all live in `sections.contact.wall` in content.js.
+- **Tune it:** `heading`, `line`, `empty`, `sign`, `signHint`, `hint`
+  (the note-box placeholder), `pingTitle`, `pingTag` and `context` all live
+  in `sections.wall` in content.js.
 - **Harness note:** entry words are auto-derived from the live content, so
   curating the wall never trips the word audit.
 

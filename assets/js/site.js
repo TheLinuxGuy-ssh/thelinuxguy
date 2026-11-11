@@ -209,7 +209,7 @@ export function initPingButton() {
    * the wall signature's — and 'wall' reports the wall as the context. */
   const sendPing = (noteText) => {
     const ghostMode = mode === 'ghost' && ping.ghost;
-    const wall = SITE_CONTENT.sections.contact.wall;
+    const wall = SITE_CONTENT.sections.wall;
     const wallMode = mode === 'wall' && wall;
     const bodyContext = wallMode ? wall.context : context;
     const body = `${noteText || ping.quickBody}\n— anonymous, from ${bodyContext}`;
@@ -295,7 +295,7 @@ export function initPingButton() {
   pingApi = {
     open({ prefill = '', mode: nextMode = null } = {}) {
       mode = nextMode || null;
-      const wall = SITE_CONTENT.sections.contact.wall;
+      const wall = SITE_CONTENT.sections.wall;
       const wallMode = mode === 'wall' && wall;
       note.placeholder = wallMode ? wall.hint : labels.placeholder;
       if (prefill) {

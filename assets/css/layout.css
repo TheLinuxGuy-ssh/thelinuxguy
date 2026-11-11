@@ -900,23 +900,14 @@ a:focus-visible {
 }
 
 /* -----------------------------------------------------------------------
-   THE WALL - the curated guestbook at the bottom of the Contact tab
-   (sections.contact.wall). Rows read like the link-rows: the alias as a
-   micro label, then the mark they left. The sign button borrows the
-   quick-ping text-link voice; signing just opens the disturb card in
-   wall mode.
+   THE WALL - its own navigation tab (sections.wall). Rows read like the
+   link-rows: the alias as a micro label, then the mark they left. The
+   sign button borrows the quick-ping text-link voice; signing just opens
+   the disturb card in wall mode (the micro hint under it explains that).
    -------------------------------------------------------------------- */
 
-.wall {
-    margin-top: 2.4em;
-}
-
-.wall-line {
-    margin: 0.8em 0 0.4em;
-}
-
 .wall-entries {
-    margin: 0;
+    margin: 0 0 0.6em;
     padding: 0;
     list-style: none;
 }
@@ -967,4 +958,16 @@ a:focus-visible {
     color: #ffffff;
     outline: 2px solid #161616;
     outline-offset: 2px;
+}
+
+/* The micro line under the sign button explains the flow: the signature
+   arrives as a ping, and only the ones the author likes end up here. */
+
+.wall-sign-hint {
+    margin: 0.4em 0 0;
+    font-size: 0.75em;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    opacity: 0.7;
 }

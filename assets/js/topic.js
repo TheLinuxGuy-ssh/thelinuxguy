@@ -123,7 +123,10 @@ export function initTopicPage() {
       <p class="ghost-line">${ghost.ghostLine}</p>
       <button type="button" class="ghost-report">${ghost.ghostButton}</button>` : ''}`;
     if (ghost) {
-      view.querySelector('.ghost-report').addEventListener('click', () => {
+      view.querySelector('.ghost-report').addEventListener('click', (event) => {
+        // An opener click must not read as an outside click (which would
+        // close the card the same instant it opens).
+        event.stopPropagation();
         openPingCard({
           prefill: `${S.ping.ghost.note}${window.location.href}`,
           mode: 'ghost',

@@ -4,7 +4,8 @@
  * This file contains ONLY structure and behaviour - every word it renders
  * comes from <code>content.js</code> (the single source of truth):
  *
- *   sections.about / monologues / projects / personal / contact  -> chrome
+ *   sections.about / monologues / projects / personal / contact / wall
+ *                                                          -> chrome
  *   site.posts       -> cards of the Monologues tab
  *   site.projects    -> cards of the Projects tab
  *   site.personal    -> rows of the Personal tab
@@ -18,7 +19,7 @@ import { SITE_CONTENT } from './content.js';
 import { escapeHtml, slugifyTitle, openPingCard } from './site.js';
 
 const S = SITE_CONTENT;
-const { about, monologues, projects, personal, contact } = S.sections;
+const { about, monologues, projects, personal, contact, wall } = S.sections;
 
 // ---------------------------------------------------------------------------
 // Card renderers
@@ -180,9 +181,9 @@ function renderWallRow(entry) {
 const aboutStatsHtml = about.stats.map(renderStat).join('\n');
 const aboutFactsHtml = about.facts.map(renderFact).join('\n');
 const contactRowsHtml = contact.links.map(renderContactRow).join('\n');
-const wallRowsHtml = contact.wall.entries.length
-  ? contact.wall.entries.map(renderWallRow).join('\n')
-  : `        <li class="wall-empty">${contact.wall.empty}</li>`;
+const wallRowsHtml = wall.entries.length
+  ? wall.entries.map(renderWallRow).join('\n')
+  : `        <li class="wall-empty">${wall.empty}</li>`;
 
 // ---------------------------------------------------------------------------
 // Good first issues panel (Projects tab)
@@ -219,12 +220,17 @@ function drawIssues(panel, items) {
 /**
  * Wires the wall's sign button: it opens the disturb card in wall mode
  * (the wall hint as placeholder, the wall title/tag/context on send).
- * A no-op when the ping widget is disabled.
+ * A no-op when the ping widget is disabled. The click must not bubble to
+ * the document's outside-click handler, or it would close the card the
+ * same instant it opens.
  */
 function wireWallSign(scope) {
   const sign = scope.querySelector('.wall-sign');
   if (!sign) return;
-  sign.addEventListener('click', () => openPingCard({ mode: 'wall' }));
+  sign.addEventListener('click', (event) => {
+    event.stopPropagation();
+    openPingCard({ mode: 'wall' });
+  });
 }
 
 /**
@@ -341,15 +347,19 @@ ${aboutFactsHtml}
       <ul class="link-rows">
 ${contactRowsHtml}
       </ul>
+    </section>
+  `,
 
-      <div class="wall">
-        <p class="section-label">${contact.wall.heading}</p>
-        <p class="wall-line">${contact.wall.line}</p>
-        <ul class="wall-entries">
+  wall: `
+    <section class="portfolio-section">
+      <h1>${wall.heading}</h1>
+      <p class="lead">${wall.line}</p>
+
+      <ul class="wall-entries">
 ${wallRowsHtml}
-        </ul>
-        <button type="button" class="wall-sign">${contact.wall.sign}</button>
-      </div>
+      </ul>
+      <button type="button" class="wall-sign">${wall.sign}</button>
+      <p class="wall-sign-hint">${wall.signHint}</p>
     </section>
   `,
 };
@@ -381,7 +391,7 @@ export function initMainPage() {
     const section = PORTFOLIO_SECTIONS[key] ? key : DEFAULT_SECTION;
     display.innerHTML = PORTFOLIO_SECTIONS[section];
     if (section === 'projects') fillIssuesPanel(display);
-    if (section === 'contact') wireWallSign(display);
+    if (section === 'wall') wireWallSign(display);
 
     navLinks.forEach((link) => {
       const isActive = link.dataset.target === section;
@@ -443,7 +453,7 @@ export function initMainPage() {
     }
   });
 
-  // Number keys 1 to 5 open a section directly.
+  // Number keys open a section directly (1 = first tab, in nav order).
   document.addEventListener('keydown', (event) => {
     if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
 
