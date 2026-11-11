@@ -638,9 +638,9 @@ export const SITE_CONTENT = {
     labels: {
       button: 'disturb me 👋',
       heading: 'type and send here to disturb me!',
+      or: 'or',
       quickPing: 'just ping me →',
       placeholder: 'something random, a tip, a hello — anything goes…',
-      anonymous: 'no name, no email — fully anonymous',
       send: 'send it →',
       sending: 'pinging…',
       sent: 'pinged! 🎉',

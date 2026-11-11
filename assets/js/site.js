@@ -140,16 +140,20 @@ export function initPingButton() {
   const clickUrl = `${SITE_CONTENT.meta.url}${path}${window.location.search}`;
   const server = String(ping.server).replace(/\/+$/, '');
 
-  /* The whole widget is one static subtree appended to the body. */
+  /* The whole widget is one static subtree appended to the body. The card
+   * reads top-down: heading, then the note box with send beside it on one
+   * line, then the "or" rule, then the one-click quick ping. */
   const root = document.createElement('div');
   root.className = 'ping-root';
   root.innerHTML = `
       <div class="ping-pop" hidden>
         <p class="ping-pop-heading">${escapeHtml(labels.heading)}</p>
+        <div class="ping-row">
+          <textarea class="ping-note" rows="2" maxlength="${Number(ping.maxNoteLength)}" placeholder="${escapeHtml(labels.placeholder)}"></textarea>
+          <button type="button" class="ping-send" disabled>${escapeHtml(labels.send)}</button>
+        </div>
+        <div class="ping-or"><span>${escapeHtml(labels.or)}</span></div>
         <button type="button" class="ping-quick">${escapeHtml(labels.quickPing)}</button>
-        <textarea class="ping-note" rows="3" maxlength="${Number(ping.maxNoteLength)}" placeholder="${escapeHtml(labels.placeholder)}"></textarea>
-        <p class="ping-anon">${escapeHtml(labels.anonymous)}</p>
-        <button type="button" class="ping-send" disabled>${escapeHtml(labels.send)}</button>
       </div>
       <button type="button" class="ping-pill" aria-expanded="false">${escapeHtml(labels.button)}</button>`;
   document.body.appendChild(root);
