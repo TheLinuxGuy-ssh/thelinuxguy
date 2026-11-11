@@ -650,6 +650,12 @@ a:focus-visible {
     gap: 0.5em;
 }
 
+/* The hidden attribute only hides if we let it: without this rule the
+   author display:flex above would keep the card on screen while closed. */
+.ping-pop[hidden] {
+    display: none;
+}
+
 .ping-pop-heading {
     font-weight: bold;
     margin: 0;
