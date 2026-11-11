@@ -104,3 +104,156 @@ export function syncNavigation() {
     if (link) link.textContent = label;
   }
 }
+
+/* -------------------------------------------------------------------------
+ * PING - the bottom-right "disturb me" pill + popover, rendered by this one
+ * function on every page. All copy/config comes from SITE_CONTENT.ping;
+ * flipping `ping.enabled` to false (and rebuilding) removes the widget
+ * entirely, same pattern as meta.showTopicImages.
+ * ---------------------------------------------------------------------- */
+
+/** localStorage key holding the millisecond timestamp of the next unlock. */
+const PING_COOLDOWN_KEY = 'ping-last-sent-at';
+
+/** Milliseconds the "failed" label stays on the pill before it resets. */
+const PING_FAIL_RESET_MS = 2500;
+
+/**
+ * Builds and wires the disturb-me widget. A no-op while `ping.enabled` is
+ * false or the topic is empty, so nothing renders and nothing pings.
+ */
+export function initPingButton() {
+  const ping = SITE_CONTENT.ping;
+  if (!ping || ping.enabled === false || !ping.topic) return null;
+  const { labels } = ping;
+
+  /* Which page is the visitor on? It rides along inside the message body
+   * ("...from <page>") and becomes the tap-to-open link of the push. */
+  const path = window.location.pathname;
+  const slug = new URLSearchParams(window.location.search).get('p') || '';
+  let context = labels.homeContext;
+  if (path.indexOf('/monologue') !== -1) {
+    context = slug ? `${labels.monologueContext}: ${slug}` : labels.monologueContext;
+  } else if (path.indexOf('/topic') !== -1) {
+    context = slug ? `${labels.topicContext}: ${slug}` : labels.topicContext;
+  }
+  const clickUrl = `${SITE_CONTENT.meta.url}${path}${window.location.search}`;
+  const server = String(ping.server).replace(/\/+$/, '');
+
+  /* The whole widget is one static subtree appended to the body. */
+  const root = document.createElement('div');
+  root.className = 'ping-root';
+  root.innerHTML = `
+      <div class="ping-pop" hidden>
+        <p class="ping-pop-heading">${escapeHtml(labels.heading)}</p>
+        <button type="button" class="ping-quick">${escapeHtml(labels.quickPing)}</button>
+        <textarea class="ping-note" rows="3" maxlength="${Number(ping.maxNoteLength)}" placeholder="${escapeHtml(labels.placeholder)}"></textarea>
+        <p class="ping-anon">${escapeHtml(labels.anonymous)}</p>
+        <button type="button" class="ping-send" disabled>${escapeHtml(labels.send)}</button>
+      </div>
+      <button type="button" class="ping-pill" aria-expanded="false">${escapeHtml(labels.button)}</button>`;
+  document.body.appendChild(root);
+
+  const pop = root.querySelector('.ping-pop');
+  const pill = root.querySelector('.ping-pill');
+  const quick = root.querySelector('.ping-quick');
+  const note = root.querySelector('.ping-note');
+  const send = root.querySelector('.ping-send');
+
+  /** Restores the idle state after a send (or the cooldown ran out). */
+  const unlock = () => {
+    pill.disabled = false;
+    quick.disabled = false;
+    send.disabled = note.value.trim().length === 0;
+    pill.textContent = labels.button;
+  };
+
+  /** Schedules `unlock` without keeping the page from ever unloading. */
+  const schedule = (fn, ms) => {
+    const timer = setTimeout(fn, ms);
+    if (typeof timer === 'object' && timer && typeof timer.unref === 'function') {
+      timer.unref();
+    }
+  };
+
+  /** Sends one notification: a note (or the quick-ping line) + the page. */
+  const sendPing = (noteText) => {
+    const body = `${noteText || ping.quickBody}\n— anonymous, from ${context}`;
+    pill.disabled = true;
+    quick.disabled = true;
+    send.disabled = true;
+    pill.textContent = labels.sending;
+    fetch(`${server}/${ping.topic}`, {
+      method: 'POST',
+      headers: {
+        'X-Title': ping.notifyTitle,
+        'X-Tags': ping.tags,
+        'X-Click': clickUrl,
+      },
+      body,
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error(`ntfy said ${res.status}`);
+        try {
+          localStorage.setItem(PING_COOLDOWN_KEY, String(Date.now() + ping.cooldownSeconds * 1000));
+        } catch (err) {
+          void err; /* private mode: no cooldown across reloads, fine */
+        }
+        pill.textContent = labels.sent;
+        pop.setAttribute('hidden', '');
+        pill.setAttribute('aria-expanded', 'false');
+        schedule(unlock, ping.cooldownSeconds * 1000);
+      })
+      .catch(() => {
+        /* No cooldown after a failure - let the visitor retry at once. */
+        pill.textContent = labels.failed;
+        schedule(unlock, PING_FAIL_RESET_MS);
+      });
+  };
+
+  const openPop = () => {
+    pop.removeAttribute('hidden');
+    pill.setAttribute('aria-expanded', 'true');
+    quick.focus();
+  };
+
+  const closePop = () => {
+    if (pop.hasAttribute('hidden')) return;
+    pop.setAttribute('hidden', '');
+    pill.setAttribute('aria-expanded', 'false');
+    pill.focus();
+  };
+
+  pill.addEventListener('click', () => {
+    if (pop.hasAttribute('hidden')) openPop(); else closePop();
+  });
+  quick.addEventListener('click', () => sendPing(''));
+  note.addEventListener('input', () => {
+    send.disabled = note.value.trim().length === 0;
+  });
+  send.addEventListener('click', () => sendPing(note.value.trim()));
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') closePop();
+  });
+  document.addEventListener('click', (event) => {
+    if (!root.contains(event.target)) closePop();
+  });
+
+  /* Survived a reload within the cooldown? Start locked with what's left. */
+  let lastSent = 0;
+  try {
+    lastSent = Number(localStorage.getItem(PING_COOLDOWN_KEY)) || 0;
+  } catch (err) {
+    void err;
+  }
+  const remaining = lastSent - Date.now();
+  if (remaining > 0) {
+    pill.disabled = true;
+    quick.disabled = true;
+    send.disabled = true;
+    pill.textContent = labels.sent;
+    schedule(unlock, remaining);
+  }
+
+  return root;
+}

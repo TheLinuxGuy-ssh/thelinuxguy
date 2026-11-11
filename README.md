@@ -101,6 +101,25 @@ prefers `rsvg-convert` / `magick` / `inkscape`; on a plain macOS box it falls
 back to the native `qlmanage` + `sips` pair, so no extra installs are needed.
 Both index.html and the topic-page OG fallback point at that same file.
 
+### 6. The "disturb me" button (ntfy pings)
+A site-wide pill, bottom-right of every page, rendered by `initPingButton()`
+in site.js. Everything about it lives in one `ping` block in content.js:
+
+- **Get your pings:** install the ntfy app (phone or desktop) and subscribe to
+  exactly `ping.topic` (`thelinuxguy-hi-k7f2x9`). Every quick ping or anonymous
+  note then lands as a push on all your subscribed devices.
+- **What a ping carries:** the visitor's note (or the quick-ping line when they
+  didn't type), which page they were reading (inside the message body), and the
+  notification opens that page when tapped (`X-Click`).
+- **Turn it off:** `ping.enabled: false` → rebuild → the pill vanishes from
+  every page (same pattern as `meta.showTopicImages`).
+- **Too noisy / topic leaked:** change the random suffix in `ping.topic`,
+  rebuild, subscribe to the new name. Keep the suffix random — the topic name
+  ships inside the bundle, so anyone who digs it out can ping you too.
+- **Timing:** one visitor can ping every `ping.cooldownSeconds` (the cooldown
+  survives a reload); failed sends are not counted.
+- **Self-hosting:** point `ping.server` at your own ntfy instance and rebuild.
+
 ## What is intentionally *not* in content.js
 
 The `<head>` of each HTML file (`<title>`, meta description, Open Graph and

@@ -595,4 +595,59 @@ export const SITE_CONTENT = {
       },
     },
   },
+
+  /* -----------------------------------------------------------------------
+   * PING - the bottom-right "disturb me" button, on every page.
+   *
+   * One click = an ntfy push to every device subscribed to `topic`. The
+   * popover also takes an anonymous note; whichever page the visitor was
+   * reading rides along inside the message body and becomes the tap-to-open
+   * link of the notification.
+   *
+   * SETUP: install the ntfy app (phone or desktop), subscribe to exactly the
+   * topic below, done. The topic name ships inside the bundle, so keep the
+   * random suffix - anyone who digs it out can ping you too; if it ever
+   * gets noisy, change the suffix here and run `npm run build` again.
+   */
+  ping: {
+    /** Master switch (same pattern as meta.showTopicImages). */
+    enabled: true,
+
+    /** ntfy server; swap in your own instance whenever you like. */
+    server: 'https://ntfy.sh',
+
+    /** YOUR topic - subscribe to exactly this name in the ntfy app. */
+    topic: 'thelinuxguy-hi-k7f2x9',
+
+    /** Seconds one visitor has to wait between two successful pings. */
+    cooldownSeconds: 30,
+
+    /** Hard cap for the anonymous note (enforced by the input box). */
+    maxNoteLength: 500,
+
+    /** Emoji shortcodes ntfy shows next to the notification. */
+    tags: 'wave,eyes',
+
+    /** Title line of the push notification. */
+    notifyTitle: 'disturbance received 👋',
+
+    /** Message body when someone just pings without typing anything. */
+    quickBody: 'just a ping — no note, pure vibes.',
+
+    /** Every visible string of the widget, editable like everything else. */
+    labels: {
+      button: 'disturb me 👋',
+      heading: 'type and send here to disturb me!',
+      quickPing: 'just ping me →',
+      placeholder: 'something random, a tip, a hello — anything goes…',
+      anonymous: 'no name, no email — fully anonymous',
+      send: 'send it →',
+      sending: 'pinging…',
+      sent: 'pinged! 🎉',
+      failed: "didn't go through — try again?",
+      homeContext: 'the home page',
+      monologueContext: 'monologue',
+      topicContext: 'personal',
+    },
+  },
 };
