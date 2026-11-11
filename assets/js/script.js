@@ -15,7 +15,7 @@
  */
 
 import { SITE_CONTENT } from './content.js';
-import { escapeHtml, slugifyTitle } from './site.js';
+import { escapeHtml, slugifyTitle, openPingCard } from './site.js';
 
 const S = SITE_CONTENT;
 const { about, monologues, projects, personal, contact } = S.sections;
@@ -161,6 +161,18 @@ function renderContactRow(link) {
         </li>`;
 }
 
+/**
+ * Renders one curated mark on the wall: the alias first (micro label),
+ * then the line they left. Entries are hand-pasted from real pings into
+ * content.js — nothing publishes itself.
+ */
+function renderWallRow(entry) {
+  return `        <li>
+          <span class="wall-alias">${escapeHtml(entry.alias)}</span>
+          <span class="wall-quote">${escapeHtml(entry.line)}</span>
+        </li>`;
+}
+
 // ---------------------------------------------------------------------------
 // Tab templates (rendered HTML is identical to the original site)
 // ---------------------------------------------------------------------------
@@ -168,6 +180,9 @@ function renderContactRow(link) {
 const aboutStatsHtml = about.stats.map(renderStat).join('\n');
 const aboutFactsHtml = about.facts.map(renderFact).join('\n');
 const contactRowsHtml = contact.links.map(renderContactRow).join('\n');
+const wallRowsHtml = contact.wall.entries.length
+  ? contact.wall.entries.map(renderWallRow).join('\n')
+  : `        <li class="wall-empty">${contact.wall.empty}</li>`;
 
 // ---------------------------------------------------------------------------
 // Good first issues panel (Projects tab)
@@ -199,6 +214,17 @@ function drawIssues(panel, items) {
           <a href="${escapeHtml(it.href)}" target="_blank" rel="noopener noreferrer">${escapeHtml(it.title)} <span aria-hidden="true">&rarr;</span></a>
           <span class="issues-repo">${escapeHtml(it.repo)}</span>
         </li>`).join('');
+}
+
+/**
+ * Wires the wall's sign button: it opens the disturb card in wall mode
+ * (the wall hint as placeholder, the wall title/tag/context on send).
+ * A no-op when the ping widget is disabled.
+ */
+function wireWallSign(scope) {
+  const sign = scope.querySelector('.wall-sign');
+  if (!sign) return;
+  sign.addEventListener('click', () => openPingCard({ mode: 'wall' }));
 }
 
 /**
@@ -315,6 +341,15 @@ ${aboutFactsHtml}
       <ul class="link-rows">
 ${contactRowsHtml}
       </ul>
+
+      <div class="wall">
+        <p class="section-label">${contact.wall.heading}</p>
+        <p class="wall-line">${contact.wall.line}</p>
+        <ul class="wall-entries">
+${wallRowsHtml}
+        </ul>
+        <button type="button" class="wall-sign">${contact.wall.sign}</button>
+      </div>
     </section>
   `,
 };
@@ -346,6 +381,7 @@ export function initMainPage() {
     const section = PORTFOLIO_SECTIONS[key] ? key : DEFAULT_SECTION;
     display.innerHTML = PORTFOLIO_SECTIONS[section];
     if (section === 'projects') fillIssuesPanel(display);
+    if (section === 'contact') wireWallSign(display);
 
     navLinks.forEach((link) => {
       const isActive = link.dataset.target === section;

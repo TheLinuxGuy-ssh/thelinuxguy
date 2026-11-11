@@ -184,6 +184,29 @@ export const SITE_CONTENT = {
         { label: 'Instagram', handle: '@the.linuxguy', url: 'https://instagram.com/the.linuxguy' },
         { label: 'LinkedIn', handle: 'thelinuxguy-ssh', url: 'https://linkedin.com/in/thelinuxguy-ssh' },
       ],
+
+      /**
+       * THE WALL - a curated guestbook at the bottom of the Contact tab.
+       * Visitors sign it through the disturb card (wall mode: their ping
+       * arrives titled 'new wall signature'); the ones you like you paste
+       * here by hand as { alias, line } rows. Nothing publishes itself,
+       * so the wall can never fill with spam.
+       */
+      wall: {
+        heading: 'the wall',
+        line: 'people have left marks. you can too.',
+        empty: 'no marks yet — be the first.',
+        sign: 'sign the wall →',
+        hint: 'sign here — your line for the wall!',
+        /** How a wall signature arrives on your phone. */
+        pingTitle: 'new wall signature',
+        pingTag: 'sparkles',
+        /** The context line inside the message body. */
+        context: 'the wall',
+        entries: [
+          // { alias: 'night owl', line: 'your mom.exe saved my semester' },
+        ],
+      },
     },
   },
 

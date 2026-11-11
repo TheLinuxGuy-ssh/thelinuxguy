@@ -116,7 +116,24 @@ fresh from one unauthenticated search-API request, cached per visitor for
 - **Tune it:** `kicker`, `blurb`, `max` and `cacheMinutes` all live in
   `sections.projects.issues` in content.js.
 
-### 7. The "disturb me" button (ntfy pings)
+### 7. The wall (curated guestbook, Contact tab)
+At the bottom of the Contact tab sits the wall: a hand-curated list of the
+marks people have left. Visitors sign it with the "sign the wall →" button,
+which opens the disturb card in wall mode — their ping arrives on your phone
+titled `new wall signature` (tag `sparkles`, context "the wall").
+
+- **Curate it:** when a ping makes you smile, paste it into
+  `sections.contact.wall.entries` as `{ alias: 'who', line: 'what they said' }`
+  and rebuild. Nothing publishes itself, so the wall can never fill with spam —
+  only rows you typed in exist.
+- **Fresh start:** with no entries the wall shows `wall.empty`
+  ("no marks yet — be the first."). Fill it whenever you like.
+- **Tune it:** `heading`, `line`, `sign`, `hint`, `pingTitle`, `pingTag` and
+  `context` all live in `sections.contact.wall` in content.js.
+- **Harness note:** entry words are auto-derived from the live content, so
+  curating the wall never trips the word audit.
+
+### 8. The "disturb me" button (ntfy pings)
 A site-wide pill, bottom-right of every page, rendered by `initPingButton()`
 in site.js. Everything about it lives in one `ping` block in content.js:
 

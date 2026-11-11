@@ -205,10 +205,14 @@ export function initPingButton() {
   };
 
   /** Sends one notification: a note (or the quick-ping line) + the page.
-   * Ghost mode swaps in the ghost report's title and tag. */
+   * Ghost mode swaps in the ghost report's title/tag; wall mode swaps in
+   * the wall signature's — and 'wall' reports the wall as the context. */
   const sendPing = (noteText) => {
     const ghostMode = mode === 'ghost' && ping.ghost;
-    const body = `${noteText || ping.quickBody}\n— anonymous, from ${context}`;
+    const wall = SITE_CONTENT.sections.contact.wall;
+    const wallMode = mode === 'wall' && wall;
+    const bodyContext = wallMode ? wall.context : context;
+    const body = `${noteText || ping.quickBody}\n— anonymous, from ${bodyContext}`;
     pill.disabled = true;
     quick.disabled = true;
     send.disabled = true;
@@ -216,8 +220,8 @@ export function initPingButton() {
     fetch(`${server}/${ping.topic}`, {
       method: 'POST',
       headers: {
-        'X-Title': ghostMode ? ping.ghost.title : ping.notifyTitle,
-        'X-Tags': ghostMode ? ping.ghost.tag : ping.tags,
+        'X-Title': ghostMode ? ping.ghost.title : wallMode ? wall.pingTitle : ping.notifyTitle,
+        'X-Tags': ghostMode ? ping.ghost.tag : wallMode ? wall.pingTag : ping.tags,
         'X-Click': clickUrl,
       },
       body,
@@ -257,6 +261,7 @@ export function initPingButton() {
 
   pill.addEventListener('click', () => {
     mode = null; /* the pill itself is always a plain disturb */
+    note.placeholder = labels.placeholder;
     if (pop.hasAttribute('hidden')) openPop(); else closePop();
   });
   quick.addEventListener('click', () => sendPing(''));
@@ -290,11 +295,14 @@ export function initPingButton() {
   pingApi = {
     open({ prefill = '', mode: nextMode = null } = {}) {
       mode = nextMode || null;
+      const wall = SITE_CONTENT.sections.contact.wall;
+      const wallMode = mode === 'wall' && wall;
+      note.placeholder = wallMode ? wall.hint : labels.placeholder;
       if (prefill) {
         note.value = prefill;
         send.disabled = note.value.trim().length === 0;
       }
-      openPop(Boolean(prefill));
+      openPop(Boolean(prefill) || wallMode);
     },
   };
 

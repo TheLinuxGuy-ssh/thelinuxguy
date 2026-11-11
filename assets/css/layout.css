@@ -898,3 +898,73 @@ a:focus-visible {
         position: static;
     }
 }
+
+/* -----------------------------------------------------------------------
+   THE WALL - the curated guestbook at the bottom of the Contact tab
+   (sections.contact.wall). Rows read like the link-rows: the alias as a
+   micro label, then the mark they left. The sign button borrows the
+   quick-ping text-link voice; signing just opens the disturb card in
+   wall mode.
+   -------------------------------------------------------------------- */
+
+.wall {
+    margin-top: 2.4em;
+}
+
+.wall-line {
+    margin: 0.8em 0 0.4em;
+}
+
+.wall-entries {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.wall-entries li {
+    padding: 0.6em 0;
+}
+
+.wall-entries li + li {
+    border-top: 2px solid #161616;
+}
+
+.wall-alias {
+    display: block;
+    font-size: 0.75em;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    opacity: 0.7;
+}
+
+.wall-quote {
+    display: block;
+    margin-top: 0.25em;
+}
+
+.wall-empty {
+    font-size: 0.9em;
+    opacity: 0.7;
+}
+
+.wall-sign {
+    margin-top: 1em;
+    font-family: inherit;
+    font-size: 1em;
+    font-weight: bold;
+    color: #161616;
+    background: none;
+    border: 0;
+    border-bottom: 2px solid #161616;
+    padding: 0 0 0.05em;
+    cursor: pointer;
+}
+
+.wall-sign:hover,
+.wall-sign:focus-visible {
+    background-color: #161616;
+    color: #ffffff;
+    outline: 2px solid #161616;
+    outline-offset: 2px;
+}
