@@ -123,8 +123,7 @@ fresh from one unauthenticated search-API request, cached per visitor for
 hand-curated list of the marks people have left: visitors sign it with the
 "sign the wall →" button, which opens the disturb card in wall mode — their
 ping arrives on your phone titled `new wall signature` (tag `sparkles`,
-context "the wall"). A micro hint under the button tells visitors exactly
-that: *"your sign pings me directly — the ones i like end up here."*
+context "the wall").
 
 - **How a sign is added (the honest answer):** a signature only becomes a
   wall row when YOU paste it. When a ping makes you smile, add it to
@@ -132,7 +131,7 @@ that: *"your sign pings me directly — the ones i like end up here."*
   rebuild. Nothing publishes itself, so the wall can never fill with spam.
 - **Fresh start:** with no entries the wall shows `wall.empty`
   ("no marks yet — be the first."). Fill it whenever you like.
-- **Tune it:** `heading`, `line`, `empty`, `sign`, `signHint`, `hint`
+- **Tune it:** `heading`, `line`, `empty`, `sign`, `hint`
   (the note-box placeholder), `pingTitle`, `pingTag` and `context` all live
   in `sections.wall` in content.js.
 - **Harness note:** entry words are auto-derived from the live content, so
@@ -155,6 +154,8 @@ in site.js. Everything about it lives in one `ping` block in content.js:
   ships inside the bundle, so anyone who digs it out can ping you too.
 - **Timing:** one visitor can ping every `ping.cooldownSeconds` (the cooldown
   survives a reload); failed sends are not counted.
+- **Focus:** opening the card — pill, wall sign, ghost report — always puts
+  the cursor straight into the note box.
 - **Self-hosting:** point `ping.server` at your own ntfy instance and rebuild.
 - **The work-with-me line:** `ping.labels.workWithMe` is the small postscript
   at the bottom of the card — reword it freely, it's just copy.

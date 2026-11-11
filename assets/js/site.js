@@ -246,10 +246,13 @@ export function initPingButton() {
       });
   };
 
-  const openPop = (focusNote) => {
+  /* Opening always puts the cursor in the note box: the card exists to be
+   * typed into (pill, wall sign, ghost report all end up here). The
+   * one-click quick ping stays one Tab away. */
+  const openPop = () => {
     pop.removeAttribute('hidden');
     pill.setAttribute('aria-expanded', 'true');
-    if (focusNote) note.focus(); else quick.focus();
+    note.focus();
   };
 
   const closePop = () => {
@@ -302,7 +305,7 @@ export function initPingButton() {
         note.value = prefill;
         send.disabled = note.value.trim().length === 0;
       }
-      openPop(Boolean(prefill) || wallMode);
+      openPop();
     },
   };
 

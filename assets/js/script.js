@@ -359,7 +359,6 @@ ${contactRowsHtml}
 ${wallRowsHtml}
       </ul>
       <button type="button" class="wall-sign">${wall.sign}</button>
-      <p class="wall-sign-hint">${wall.signHint}</p>
     </section>
   `,
 };

@@ -204,9 +204,8 @@ export const SITE_CONTENT = {
       /** Shown instead of the entries while the list is empty. */
       empty: 'no marks yet — be the first.',
 
-      /** The sign button + the micro line under it that explains the flow. */
+      /** The sign button. Signing opens the disturb card in wall mode. */
       sign: 'sign the wall →',
-      signHint: 'your sign pings me directly — the ones i like end up here.',
 
       /** The note-box placeholder while in wall mode. */
       hint: 'sign here — your line for the wall!',
