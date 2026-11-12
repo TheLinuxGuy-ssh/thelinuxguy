@@ -4,7 +4,8 @@
   "scripts": {
     "build": "node scripts/build.mjs",
     "dev": "vite",
-    "wall": "node scripts/wall.mjs"
+    "wall": "node scripts/wall.mjs",
+    "ping-test": "node scripts/ping-live.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.28.2"

@@ -204,28 +204,54 @@ export function initPingButton() {
     }
   };
 
+  /** The one visible failure path: no cooldown, retry at once. */
+  const failPing = () => {
+    pill.textContent = labels.failed;
+    schedule(unlock, PING_FAIL_RESET_MS);
+  };
+
   /** Sends one notification: a note (or the quick-ping line) + the page.
    * Ghost mode swaps in the ghost report's title/tag; wall mode swaps in
-   * the wall signature's — and 'wall' reports the wall as the context. */
+   * the wall signature's — and 'wall' reports the wall as the context.
+   * Published in ntfy's JSON format to the server ROOT: emoji titles are
+   * illegal in HTTP headers (browsers throw before fetch even runs and
+   * the promise catch never fires), while the JSON body carries any
+   * unicode. Posting to /<topic> instead of the root would make ntfy
+   * treat the whole JSON as plain message text. */
   const sendPing = (noteText) => {
     const ghostMode = mode === 'ghost' && ping.ghost;
     const wall = SITE_CONTENT.sections.wall;
     const wallMode = mode === 'wall' && wall;
     const bodyContext = wallMode ? wall.context : context;
-    const body = `${noteText || ping.quickBody}\n— anonymous, from ${bodyContext}`;
+    const title = ghostMode ? ping.ghost.title : wallMode ? wall.pingTitle : ping.notifyTitle;
+    const tags = (ghostMode ? ping.ghost.tag : wallMode ? wall.pingTag : ping.tags)
+      .split(',').map((t) => t.trim()).filter(Boolean);
     pill.disabled = true;
     quick.disabled = true;
     send.disabled = true;
     pill.textContent = labels.sending;
-    fetch(`${server}/${ping.topic}`, {
-      method: 'POST',
-      headers: {
-        'X-Title': ghostMode ? ping.ghost.title : wallMode ? wall.pingTitle : ping.notifyTitle,
-        'X-Tags': ghostMode ? ping.ghost.tag : wallMode ? wall.pingTag : ping.tags,
-        'X-Click': clickUrl,
-      },
-      body,
-    })
+    /* A synchronous throw (bad payload, whatever else) must land in the
+     * same visible failure path as a network rejection — never hang on
+     * "sending…" with the error hidden. */
+    let pending;
+    try {
+      pending = fetch(`${server}/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          topic: ping.topic,
+          message: `${noteText || ping.quickBody}\n— anonymous, from ${bodyContext}`,
+          title,
+          tags,
+          click: clickUrl,
+        }),
+      });
+    } catch (err) {
+      void err;
+      failPing();
+      return;
+    }
+    pending
       .then((res) => {
         if (!res.ok) throw new Error(`ntfy said ${res.status}`);
         try {
@@ -239,11 +265,7 @@ export function initPingButton() {
         mode = null;
         schedule(unlock, ping.cooldownSeconds * 1000);
       })
-      .catch(() => {
-        /* No cooldown after a failure - let the visitor retry at once. */
-        pill.textContent = labels.failed;
-        schedule(unlock, PING_FAIL_RESET_MS);
-      });
+      .catch(() => failPing());
   };
 
   /* Opening always puts the cursor in the note box: the card exists to be

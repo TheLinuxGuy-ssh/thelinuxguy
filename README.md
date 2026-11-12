@@ -148,17 +148,31 @@ in site.js. Everything about it lives in one `ping` block in content.js:
 
 - **Get your pings:** install the ntfy app (phone or desktop) and subscribe to
   exactly `ping.topic` (`thelinuxguy-hi-k7f2x9`). Every quick ping or anonymous
-  note then lands as a push on all your subscribed devices.
+  note then lands as a push on all your subscribed devices. If sends succeed
+  but your phone stays silent, it's the subscription or (on Android) battery
+  optimization — not the site.
 - **What a ping carries:** the visitor's note (or the quick-ping line when they
   didn't type), which page they were reading (inside the message body), and the
-  notification opens that page when tapped (`X-Click`).
+  notification opens that page when tapped (`click`).
+- **How it sends:** ntfy's JSON publish format, POSTed to the server root.
+  Emoji titles (`disturbance received 👋`) are illegal in HTTP header values —
+  browsers throw before `fetch()` even returns a promise, which silently ate
+  every send in the old header-based version — while the JSON body carries
+  any unicode. Synchronous throws land in the visible "didn't go through"
+  state, never a stuck "sending…".
+- **Test it for real:** `npm run ping-test` drives the shipped bundles through
+  every mode (quick ping, typed note, wall signature, ghost report) against
+  the real server and then polls the topic cache to confirm what subscribers
+  received. Exits non-zero on any failure. Needs `npm run build` to have run.
 - **Turn it off:** `ping.enabled: false` → rebuild → the pill vanishes from
   every page (same pattern as `meta.showTopicImages`).
 - **Too noisy / topic leaked:** change the random suffix in `ping.topic`,
   rebuild, subscribe to the new name. Keep the suffix random — the topic name
   ships inside the bundle, so anyone who digs it out can ping you too.
 - **Timing:** one visitor can ping every `ping.cooldownSeconds` (the cooldown
-  survives a reload); failed sends are not counted.
+  survives a reload); failed sends are not counted. ntfy.sh also rate-limits
+  anonymous senders per IP per day — when that quota is hit the pill shows
+  "didn't go through" and resets the next day.
 - **Focus:** opening the card — pill, wall sign, ghost report — always puts
   the cursor straight into the note box.
 - **Self-hosting:** point `ping.server` at your own ntfy instance and rebuild.
