@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "scripts": {
     "build": "node scripts/build.mjs",
-    "dev": "vite"
+    "dev": "vite",
+    "wall": "node scripts/wall.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.28.2"

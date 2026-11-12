@@ -125,12 +125,17 @@ hand-curated list of the marks people have left: visitors sign it with the
 ping arrives on your phone titled `new wall signature` (tag `sparkles`,
 context "the wall").
 
-- **How a sign is added (the honest answer):** a signature only becomes a
-  wall row when YOU paste it. When a ping makes you smile, add it to
-  `sections.wall.entries` as `{ alias: 'who', line: 'what they said' }` and
+- **Keep a signature (one command):** when a ping makes you smile, copy the
+  line from the ntfy app and run
+  `npm run wall -- ["the alias"] "the line they left"` — it appends the row
+  to `sections.wall.entries` (newest first), escapes quotes for you and
+  rebuilds. Visitors are anonymous, so the alias is whatever you want to
+  call them. Commit & push as usual to publish.
+- **Keep a signature (by hand):** open content.js, add
+  `{ alias: 'who', line: 'what they said' }` to `sections.wall.entries`,
   rebuild. Nothing publishes itself, so the wall can never fill with spam.
-- **Fresh start:** with no entries the wall shows `wall.empty`
-  ("no marks yet — be the first."). Fill it whenever you like.
+- **Empty start:** with no entries the wall shows `wall.empty`
+  ("no marks yet — be the first.").
 - **Tune it:** `heading`, `line`, `empty`, `sign`, `hint`
   (the note-box placeholder), `pingTitle`, `pingTag` and `context` all live
   in `sections.wall` in content.js.
