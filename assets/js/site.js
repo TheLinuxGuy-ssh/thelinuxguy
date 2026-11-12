@@ -333,3 +333,94 @@ export function initPingButton() {
 
   return root;
 }
+
+/* -------------------------------------------------------------------------
+ * VISIT DOORBELL - a quiet notice that a (probably) new browser arrived.
+ * At most one ping per browser per `visits.windowDays`, and only if the
+ * visitor is still on the page `visits.delaySeconds` after landing:
+ * reloads, tab switches and clicking around repeat NOTHING (the browser
+ * remembers being noticed in its own localStorage). Deliberately NOT
+ * analytics - nothing about the visitor is stored anywhere except one
+ * anonymous timestamp inside their own browser.
+ * ---------------------------------------------------------------------- */
+
+/** localStorage key: millisecond timestamp of the last noticed visit. */
+const VISIT_KEY = 'visit-last-noticed-at';
+
+/** localStorage key: millisecond timestamp of an in-flight visit claim,
+ * so two tabs opened in the same minute ring the bell once, not twice. */
+const VISIT_CLAIM_KEY = 'visit-pending-at';
+
+/** How long a claim blocks other tabs of the same visit. */
+const VISIT_CLAIM_MS = 60 * 1000;
+
+/** Runs `fn` after `ms` without keeping the page from ever unloading. */
+const scheduleSoft = (fn, ms) => {
+  const timer = setTimeout(fn, ms);
+  if (typeof timer === 'object' && timer && typeof timer.unref === 'function') {
+    timer.unref();
+  }
+};
+
+/**
+ * Wires the visit doorbell on every page (deep links and monologue pages
+ * get visits too). A no-op while `visits.enabled` is false or the topic
+ * is empty, so nothing renders, nothing stores, nothing pings.
+ */
+export function initVisitPing() {
+  const visits = SITE_CONTENT.visits;
+  if (!visits || visits.enabled === false || !visits.topic) return;
+  const server = String(visits.server).replace(/\/+$/, '');
+  const now = Date.now();
+  let last = 0;
+  let claim = 0;
+  try {
+    last = Number(localStorage.getItem(VISIT_KEY)) || 0;
+    claim = Number(localStorage.getItem(VISIT_CLAIM_KEY)) || 0;
+  } catch (err) {
+    void err; /* private mode: the bell just stays quiet */
+  }
+  /* This browser was noticed recently - never ring for it again. */
+  if (now - last < visits.windowDays * 24 * 60 * 60 * 1000) return;
+  /* Another tab of this visit already claimed the bell. */
+  if (now - claim < VISIT_CLAIM_MS) return;
+  try {
+    localStorage.setItem(VISIT_CLAIM_KEY, String(now));
+  } catch (err) {
+    void err;
+  }
+  const landing = `${window.location.pathname}${window.location.search}`;
+  const click = `${SITE_CONTENT.meta.url}${landing}`;
+  /* The bell only rings if the visitor is still here after the delay:
+   * the timer dies with the page, so a bounce sends nothing at all. */
+  scheduleSoft(() => {
+    let host = '';
+    try {
+      host = new URL(document.referrer).hostname.replace(/^www\./, '');
+    } catch (err) {
+      void err; /* no referrer: a direct visit */
+    }
+    const from = host ? `from ${host}` : visits.direct;
+    fetch(`${server}/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        topic: visits.topic,
+        title: visits.title,
+        message: `${from} · ${visits.landing} ${landing}`,
+        priority: visits.priority,
+        tags: visits.tags.split(',').map((t) => t.trim()).filter(Boolean),
+        click,
+      }),
+    })
+      .then((res) => {
+        if (!res.ok) return; /* a failed bell is silently retried next visit */
+        try {
+          localStorage.setItem(VISIT_KEY, String(Date.now()));
+        } catch (err) {
+          void err;
+        }
+      })
+      .catch(() => { /* offline or blocked: the next visit rings instead */ });
+  }, visits.delaySeconds * 1000);
+}

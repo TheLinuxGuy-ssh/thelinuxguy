@@ -695,7 +695,7 @@ export const SITE_CONTENT = {
     notifyTitle: 'disturbance received 👋',
 
     /** Message body when someone just pings without typing anything. */
-    quickBody: 'just a ping — no note, pure vibes.',
+    quickBody: 'Someone just pinged you! No notes :)*',
 
     /** Every visible string of the widget, editable like everything else. */
     labels: {
@@ -707,11 +707,55 @@ export const SITE_CONTENT = {
       send: 'send it →',
       sending: 'pinging…',
       sent: 'pinged! 🎉',
-      failed: "didn't go through — try again?",
+      failed: "didn't go through. Try again?",
       homeContext: 'the home page',
       monologueContext: 'monologue',
       topicContext: 'personal',
       workWithMe: 'want to work with me? just disturb me at this point :)',
     },
+  },
+
+  /* ------------------------------------------------------------------
+   * THE VISIT DOORBELL - one quiet ping per browser per window, and only
+   * if the visitor is still around `delaySeconds` after landing. Reloads,
+   * tab switches and clicking through the sections repeat NOTHING (the
+   * browser remembers being noticed, in its own localStorage). This is
+   * deliberately NOT analytics: nothing about the visitor is stored
+   * anywhere except one anonymous timestamp inside their own browser.
+   * SETUP: subscribe to exactly `topic` below - it is a SEPARATE channel
+   * from `ping`, so visit notices never bury real messages. The topic
+   * name ships inside the bundle; rotate the suffix if it gets abused.
+   * ------------------------------------------------------------------ */
+  visits: {
+    /** Master switch (same pattern as ping.enabled). */
+    enabled: true,
+
+    /** ntfy server; swap in your own instance whenever you like. */
+    server: 'https://ntfy.sh',
+
+    /** YOUR visits topic - subscribe to exactly this name in the app. */
+    topic: 'thelinuxguy-visits-7v3kqm',
+
+    /** How long a browser counts as "already noticed" (days). */
+    windowDays: 7,
+
+    /** Seconds the visitor must stay before the bell rings; gone earlier
+     * (a bounce, a bot) and nothing is sent at all. */
+    delaySeconds: 10,
+
+    /** ntfy priority 1-5; 2 = quiet (no vibration), real pings stay loud. */
+    priority: 2,
+
+    /** Emoji shortcodes ntfy shows next to the notification. */
+    tags: 'bell',
+
+    /** Title line of the push notification. */
+    title: 'someone walked in',
+
+    /** The referral wording when there is no referrer at all. */
+    direct: 'direct — typed or bookmark',
+
+    /** Wording before the page they landed on. */
+    landing: 'reading',
   },
 };

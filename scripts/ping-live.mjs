@@ -14,6 +14,8 @@
  *      real unlock timer)
  *   3. wall signature (the wall tab)
  *   4. ghost report (monologue not-found page)
+ *   5. the visit doorbell (one quiet ping to its own topic, plus the
+ *      silence of an already-noticed browser)
  * plus a deliberate invalid-topic probe — the only failure the real
  * server can be asked to produce without abusing anyone's quota.
  *
@@ -87,7 +89,7 @@ class El {
 
 const NAV_TARGETS = ['about', 'monologues', 'projects', 'personal', 'contact', 'wall'];
 
-function makeSandbox({ params = '', hash = '', pathname = '/' } = {}) {
+function makeSandbox({ params = '', hash = '', pathname = '/', referrer = '' } = {}) {
   const rec = {
     ops: [], byId: new Map(), bodyNodes: [], navLinks: [],
     fetches: [], responses: [], inflight: [], store: {}, timers: [],
@@ -103,6 +105,7 @@ function makeSandbox({ params = '', hash = '', pathname = '/' } = {}) {
   };
   rec.document = {
     readyState: 'interactive',
+    referrer,
     title_: '',
     get title() { return this.title_; },
     set title(v) { this.title_ = v; },
@@ -140,23 +143,31 @@ function makeSandbox({ params = '', hash = '', pathname = '/' } = {}) {
     window: rec.window,
     console,
     URLSearchParams,
+    URL,
     localStorage: {
       getItem: (k) => (k in rec.store ? rec.store[k] : null),
       setItem: (k, v) => { rec.store[k] = String(v); },
     },
     setTimeout: (fn) => { rec.timers.push(fn); return rec.timers.length; },
-    /* Real fetch: same ByteString header validation as a browser, and the
-     * response is cloned so the test can see what the widget saw. */
+    /* Real fetch: same ByteString header validation as a browser. Each
+     * fetch record keeps the response it produced, so scenarios can pick
+     * their send by content instead of by index (other recorded timers,
+     * like the doorbell's, may fire in between). */
     fetch: (url, opts) => {
-      rec.fetches.push({ url, opts });
+      const record = { url, opts, res: null };
+      rec.fetches.push(record);
       const p = fetch(url, opts);
       const capture = p
         .then(async (r) => {
           const entry = { ok: r.ok, status: r.status };
           if (r.ok) { try { entry.body = await r.clone().json(); } catch { /* no body */ } }
+          record.res = entry;
           rec.responses.push(entry);
         })
-        .catch((e) => rec.responses.push({ ok: false, error: String(e) }));
+        .catch((e) => {
+          record.res = { ok: false, error: String(e) };
+          rec.responses.push(record.res);
+        });
       rec.inflight.push(p, capture);
       return p;
     },
@@ -209,6 +220,17 @@ const fire = (el, type, ev = {}) => {
   if (f) f(ev);
   return !!f;
 };
+/* Picks a recorded send by what its payload says — index-free, so other
+ * recorded timers firing between sends cannot shift the lookup. */
+const sendOf = (rec, match) => {
+  for (const f of rec.fetches) {
+    try {
+      const body = JSON.parse(f.opts.body);
+      if (match(body)) return { sent: body, res: f.res || {} };
+    } catch { /* not a JSON publish */ }
+  }
+  return { sent: null, res: {} };
+};
 
 /* --------------------------------- checks -------------------------------- */
 const results = [];
@@ -227,8 +249,7 @@ check('card opens with the note box focused',
   home.ops.some((o) => o[0] === 'focus' && o[1] === 'created:div :: .ping-note'));
 fire(w.quick, 'click');
 await settle(home);
-const quickRes = home.responses[0] || {};
-const quickSent = home.fetches[0] ? JSON.parse(home.fetches[0].opts.body) : null;
+const { sent: quickSent, res: quickRes } = sendOf(home, (b) => b.message?.includes(P.quickBody));
 check('quick ping → HTTP 200', quickRes.ok === true, `status ${quickRes.status ?? 'n/a'}`);
 check('quick ping posts to the server root', home.fetches[0]?.url === `${server}/`, home.fetches[0]?.url);
 check('quick ping payload (topic/title/tags/click/message)', !!quickSent
@@ -242,17 +263,17 @@ check('pill shows the sent label', w.pill.textContent === P.labels.sent, w.pill.
 
 /* 2. typed note on the home page */
 flushTimers(home);
+const noteText = `live test note ${stamp()}`;
 fire(w.pill, 'click', { stopPropagation() {} });
-w.note.value = `live test note ${stamp()}`;
+w.note.value = noteText;
 fire(w.note, 'input');
 fire(w.send, 'click');
 await settle(home);
-const noteRes = home.responses[1] || {};
-const noteSent = home.fetches[1] ? JSON.parse(home.fetches[1].opts.body) : null;
+const { sent: noteSent, res: noteRes } = sendOf(home, (b) => b.message?.startsWith(noteText));
 check('note send → HTTP 200', noteRes.ok === true, `status ${noteRes.status ?? 'n/a'}`);
 check('note payload (text leads, footer, exact click)', !!noteSent
   && noteSent.topic === P.topic
-  && noteSent.message.startsWith(w.note.value)
+  && noteSent.message.startsWith(noteText)
   && noteSent.message.includes(`— anonymous, from ${P.labels.homeContext}`)
   && noteSent.click === `${C.meta.url}/`
   && noteSent.title === P.notifyTitle);
@@ -268,8 +289,7 @@ wv.note.value = wallLine;
 fire(wv.note, 'input');
 fire(wv.send, 'click');
 await settle(wallRec);
-const wallRes = wallRec.responses[0] || {};
-const wallSent = wallRec.fetches[0] ? JSON.parse(wallRec.fetches[0].opts.body) : null;
+const { sent: wallSent, res: wallRes } = sendOf(wallRec, (b) => b.message?.includes(wallLine));
 check('wall signature → HTTP 200', wallRes.ok === true, `status ${wallRes.status ?? 'n/a'}`);
 check('wall payload (wall title/tag/context)', !!wallSent
   && wallSent.topic === P.topic
@@ -285,8 +305,7 @@ fire(gbtn, 'click', { stopPropagation() {} });
 const gv = widget(ghostRec);
 fire(gv.send, 'click');
 await settle(ghostRec);
-const ghostRes = ghostRec.responses[0] || {};
-const ghostSent = ghostRec.fetches[0] ? JSON.parse(ghostRec.fetches[0].opts.body) : null;
+const { sent: ghostSent, res: ghostRes } = sendOf(ghostRec, (b) => b.title === P.ghost.title);
 const ghostHref = `${C.meta.url}/monologue/?p=missing`;
 check('ghost report → HTTP 200', ghostRes.ok === true, `status ${ghostRes.status ?? 'n/a'}`);
 check('ghost payload (ghost title/tag/dead URL prefill)', !!ghostSent
@@ -296,7 +315,35 @@ check('ghost payload (ghost title/tag/dead URL prefill)', !!ghostSent
   && ghostSent.message.startsWith(`${P.ghost.note}${ghostHref}`)
   && ghostSent.message.includes('— anonymous, from monologue: missing'));
 
-/* 5. the one failure the real server can be asked for safely: an invalid
+/* 5. the visit doorbell: a fresh browser (from google) that sticks around */
+const V = C.visits;
+const doorRec = makeSandbox({ referrer: 'https://www.google.com/' });
+run(doorRec, 'main');
+check('doorbell: nothing sends before the delay', doorRec.fetches.length === 0);
+check('doorbell: the visit is claimed at load (two tabs ring once)', !!doorRec.store['visit-pending-at']);
+flushTimers(doorRec);
+await settle(doorRec);
+const { sent: doorSent, res: doorRes } = sendOf(doorRec, (b) => b.topic === V.topic);
+check('doorbell → HTTP 200', doorRes.ok === true, `status ${doorRes.status ?? 'n/a'}`);
+check('doorbell payload (quiet priority, separate channel)', !!doorSent
+  && doorSent.topic === V.topic
+  && V.topic !== P.topic
+  && doorSent.title === V.title
+  && doorSent.priority === V.priority
+  && JSON.stringify(doorSent.tags) === JSON.stringify(V.tags.split(',').map((t) => t.trim()))
+  && doorSent.message === `from google.com · ${V.landing} /`
+  && doorSent.click === `${C.meta.url}/`);
+check('doorbell marks the browser as noticed', !!doorRec.store['visit-last-noticed-at']);
+
+/* 6. a noticed browser (within the window) never re-pings */
+const again = makeSandbox({});
+again.store['visit-last-noticed-at'] = String(Date.now());
+run(again, 'main');
+flushTimers(again);
+await settle(again);
+check('doorbell: a noticed browser stays silent (no reload/page-change spam)', again.fetches.length === 0);
+
+/* 7. the one failure the real server can be asked for safely: an invalid
  * topic name (>64 chars). Proves ntfy answers rejections with non-2xx —
  * which the widget turns into the visible "didn't go through" state
  * (gated offline by the harness). */
@@ -307,9 +354,9 @@ const badRes = await fetch(`${server}/`, {
 });
 check('invalid topic is rejected with a visible non-2xx', !badRes.ok, `status ${badRes.status}`);
 
-/* 6. poll the server cache: exactly what a subscriber receives. The
- * window is generous and the lookup is retried — ntfy's cache can lag a
- * few seconds behind a fresh publish — but the match is by exact message
+/* 8. poll the server caches: exactly what a subscriber receives. The
+ * windows are generous and the lookups are retried — ntfy's cache can lag
+ * a few seconds behind a fresh publish — but the match is by exact message
  * id from each send's own response, so no false positives are possible. */
 const cases = [
   ['quick ping', quickSent, quickRes],
@@ -342,14 +389,31 @@ for (const [name, sent, res] of cases) {
   got ? `id ${got.id}` : 'not found');
 }
 
+/* the doorbell has its own channel — poll that topic too */
+let doorGot = null;
+for (let attempt = 0; attempt < 4 && !doorGot; attempt += 1) {
+  const doorPoll = await fetch(`${server}/${V.topic}/json?poll=1&since=30m`);
+  const doorCached = (await doorPoll.text()).trim().split('\n').filter(Boolean)
+    .map((l) => JSON.parse(l))
+    .filter((m) => m.event === 'message');
+  doorGot = doorCached.find((m) => m.id === doorRes.body?.id) || null;
+  if (!doorGot && attempt < 3) await new Promise((r) => setTimeout(r, 2000));
+}
+check('doorbell lands in the visits topic cache intact', !!doorGot
+  && doorGot.title === doorSent?.title
+  && JSON.stringify(doorGot.tags) === JSON.stringify(doorSent?.tags)
+  && doorGot.click === doorSent?.click
+  && doorGot.message === doorSent?.message,
+doorGot ? `id ${doorGot.id}` : 'not found');
+
 /* --------------------------------- summary ------------------------------- */
 const failed = results.filter((r) => !r.ok);
 console.log('');
 if (failed.length === 0) {
   console.log(`ALL ${results.length} LIVE CHECKS PASSED — the server confirmed every mode.`);
-  console.log(`Subscribers receive these on ${server}/${P.topic} — if your phone stayed`);
-  console.log('silent, check the topic subscription there (and on Android, disable');
-  console.log('battery optimization for the ntfy app).');
+  console.log(`Real pings arrive on ${server}/${P.topic}, quiet visit notices on ${server}/${V.topic} —`);
+  console.log('subscribe to both in the ntfy app. If your phone stays silent, check the topic');
+  console.log('subscriptions there (and on Android, disable battery optimization for ntfy).');
 } else {
   console.log(`${failed.length} of ${results.length} LIVE CHECKS FAILED`);
 }

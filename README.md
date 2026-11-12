@@ -161,9 +161,10 @@ in site.js. Everything about it lives in one `ping` block in content.js:
   any unicode. Synchronous throws land in the visible "didn't go through"
   state, never a stuck "sending…".
 - **Test it for real:** `npm run ping-test` drives the shipped bundles through
-  every mode (quick ping, typed note, wall signature, ghost report) against
-  the real server and then polls the topic cache to confirm what subscribers
-  received. Exits non-zero on any failure. Needs `npm run build` to have run.
+  every mode (quick ping, typed note, wall signature, ghost report, visit
+  doorbell) against the real server and then polls the topic caches to
+  confirm what subscribers received. Exits non-zero on any failure. Needs
+  `npm run build` to have run.
 - **Turn it off:** `ping.enabled: false` → rebuild → the pill vanishes from
   every page (same pattern as `meta.showTopicImages`).
 - **Too noisy / topic leaked:** change the random suffix in `ping.topic`,
@@ -183,6 +184,37 @@ in site.js. Everything about it lives in one `ping` block in content.js:
   it opens the card with the dead URL pre-filled and sends the ping as a
   `ghost sighting` — your phone gets a structured spook report. It renders
   only while the ping widget is enabled.
+
+### 9. The visit doorbell (one quiet ping per visitor)
+`initVisitPing()` runs on every page (deep links and monologue pages get
+visits too). All of it lives in the `visits` block in content.js:
+
+- **Get your notices:** subscribe to exactly `visits.topic`
+  (`thelinuxguy-visits-7v3kqm`) — a SEPARATE channel from `ping.topic`, so
+  visit notices never bury real messages.
+- **Why it can't spam you:** a browser pings at most once per
+  `visits.windowDays` (7) — it remembers being noticed in its own
+  localStorage, so reloads, tab switches and clicking through the sections
+  send nothing. The visitor must also still be around `visits.delaySeconds`
+  (10) after landing: gone earlier (a bounce, a bot) and the timer dies with
+  the page — nothing sends at all. Two tabs opened in the same minute ring
+  the bell once (`visit-pending-at` claim).
+- **What a notice carries:** the title (`visits.title`), where they came
+  from (`document.referrer` hostname, or `visits.direct` when there is no
+  referrer), the page they landed on, and tapping it opens that page. It
+  publishes at `priority: 2` — quiet, no vibration — with the `bell` tag.
+- **What it is NOT:** analytics. Cleared storage, private windows and other
+  devices make the same human look new again; nothing about the visitor is
+  stored anywhere except one anonymous timestamp in their own browser.
+- **Tune it:** `windowDays`, `delaySeconds`, `priority`, `title`, `direct`,
+  `landing` and `tags` all live in the `visits` block.
+- **Turn it off:** `visits.enabled: false` → rebuild → the bell never rings
+  and stores nothing.
+- **Too noisy / topic leaked:** change the random suffix in `visits.topic`,
+  rebuild, subscribe to the new name.
+- **Offline gates:** `npm run verify` (plain + min) exercises the doorbell
+  as built code — the delay, the window, the claim, the referrer wording,
+  the separate channel, and the disabled state.
 
 ## What is intentionally *not* in content.js
 
